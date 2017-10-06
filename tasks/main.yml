@@ -1,3 +1,56 @@
 ---
 
+- name: Install Borg Backup client
+  yum:
+          name: borgbackup
+          state: latest
+
+
+- name: Copy Borg wrapper
+  copy:
+          src: "borgwrapper"
+          dest: "{{ borgwrapper }}"
+          owner: root
+          group: root
+          mode: 0755
+
+
+- name: Copy config files
+  template:
+          src: "borgbackup.conf"
+          dest: "/etc/"
+          owner: "{{ backup_client_user }}"
+          group: "{{ backup_client_user }}"
+          mode: 0600
+
+
+- name: Add backup host key to ssh known hosts
+  known_hosts:
+          name: "{{ backup_server }}"
+          state: present
+          key: "{{ backup_server_key }}"
+
+
+- name: Create borgbackup repository if needed
+  command: "{{ borgwrapper }} -c /etc/borgbackup.conf exec init --encryption=none"
+  ignore_errors: true
+
+
+- name: Remove backup jobs from crontab
+  command: "crontab -u {{ backup_client_user }} -l | grep -vi 'borg' | crontab -u {{ backup_client_user }} -"
+  when: remove_crontab_jobs|default(false) == true
+
+
+- name: Add backup jobs to crontab
+  cron:
+          name: "Borg Backup job {{ item['name']|default(ansible_hostname) }}"
+          state: present
+          user: "{{ backup_client_user }}"
+          job: "{{ borg[ansible_nodename]['cmd']|default(borg_default_cmd) }}"
+          minute: "{{ item.minute|default(borg_schedulle_defaults['minute']) }}"
+          hour: "{{ item.hour|default(borg_schedulle_defaults['hour']) }}"
+          day: "{{ item.day|default(borg_schedulle_defaults['day']) }}"
+          weekday: "{{ item.wday|default(borg_schedulle_defaults['wday']) }}"
+          month: "{{ item.month|default(borg_schedulle_defaults['month']) }}"
+  with_items: "{{ borg[ansible_nodename]['schedulle'] }}"
 

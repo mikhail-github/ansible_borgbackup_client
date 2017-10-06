@@ -1,3 +1,34 @@
 ---
 
+borg_default_backup_dirs:
+        - "/etc"
+
+borg_schedulle_defaults: { minute: "00", hour: "00", wday: "*", day: "*", month: "*" }
+
+#             0-59,*,*/2    0-23,*,*/2  0-6 for Sun-Sat,* 1-31,*,*/2 1-12,*,*/2
+schedulle1: { minute: "00", hour: "00", wday: "*",        day: "*",  month: "*", name: "sched1"}
+schedulle2: { minute: "10", hour: "01", wday: "2",        day: "*",  month: "*", name: "sched2"}
+schedulle3: { minute: "20", hour: "02", wday: "3",        day: "*",  month: "*", name: "sched3"}
+
+
+borg_default_schedulle:
+        - schedulle1
+
+
+borg_default_cmd: "{{ borgwrapper }} -c /etc/borgbackup.conf allops >> /var/log/borgbackup.log 2>&1"
+
+
+borg:
+        git.rascom.ru:
+                schedulle:
+                        - { minute: "05", hour: "10", name: "git1"}
+                        - { minute: "05", hour: "13", name: "git2"}
+                        - { minute: "05", hour: "15", name: "git3"}
+                        - { minute: "05", hour: "19", name: "git4"}
+                backup_dirs:
+                        - "/ansible"
+
+        svn.rascom.ru:
+                backup_dirs:
+                        - "/tmp"
 

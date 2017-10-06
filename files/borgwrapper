@@ -1,0 +1,129 @@
+#!/bin/bash
+
+
+report () {
+	MESSAGE="$TASK_DESCRIPTION finished OK"
+	logger -t $TAG "$MESSAGE"
+	echo "$TAG $MESSAGE"
+}
+
+error_handler () {
+	local SCRIPT_NAME="$0"
+	local LINE="$1"
+	local EXIT_CODE="$2"
+	MESSAGE="${SCRIPT_NAME}: Error in line ${LINE} (exit code ${EXIT_CODE})"
+	echo "$MESSAGE"
+	logger -t $TAG "$MESSAGE"
+	#send email
+	if [ -v EMAILTO ] && [ -v EMAILFROM ] && [ NOEMAIL ne 'Y' ]; 
+	then
+		BODY="Task $TASK_DESCRIPTION on $HOSTNAME execution failed with error:\n\n"
+		BODY+="====================================================================\n"
+		BODY+="$MESSAGE\n"
+		BODY+="====================================================================\n"
+		echo -e "$BODY" | mail -r $EMAILFROM -s "$TASK_DESCRIPTION on $HOSTNAME task failed" $EMAILTO; 
+	fi
+	exit ${EXIT_CODE}
+}
+
+print_usage () {
+	cat << EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [OPTIONS] MODE
+
+OPTIONS
+    -c CONFIG_FILE
+
+MODES
+    backup|check|purge|all|exec
+EOF
+}
+
+borg_backup () {
+    EXCLUDE_CMD=()
+
+    for EXCLUDE in "${EXCLUDES[@]}"; do
+        EXCLUDE_CMD+=( --exclude "${EXCLUDE}" )
+    done
+
+    ${BORG} create --info --stats \
+        --compression lz4 \
+        --numeric-owner \
+        "${BORG_REPO}"::"$NAME-$(date -u +'%Y%m%dT%H%M%SZ')" \
+        "${PATHS[@]}" \
+        "${EXCLUDE_CMD[@]}"
+}
+
+borg_prune () {
+    # Use --prefix to limit pruning to this hostname's archives only, just in
+    # case you for some reason use the same repository for several hosts (not
+    # recommended)
+    ${BORG} prune --info --stats --list \
+        --prefix "$NAME-" \
+	--keep-hourly=${KEEP_HOURLY} \
+        --keep-daily=${KEEP_DAILY} \
+        --keep-weekly=${KEEP_WEEKLY} \
+        --keep-monthly=${KEEP_MONTHLY} \
+        --keep-yearly=${KEEP_YEARLY} \
+        "${BORG_REPO}"
+}
+
+borg_check () {
+    ${BORG} check --info "${BORG_REPO}"
+}
+
+borg_exec () {
+	${BORG} "$@" "${BORG_REPO}"
+}
+
+trap 'error_handler ${LINENO} $?' ERR INT TERM
+set -o errtrace -o pipefail
+
+
+if [ $# -lt 3 ]; then print_usage; exit 1; fi
+
+while getopts ":c:" OPT; do
+    case ${OPT} in
+        c)
+            CONFIG="${OPTARG}"
+            ;;
+        *)
+            print_usage
+            exit 1
+    esac
+done
+
+# Interpret all remaining arguments as mode parameters
+shift "$((OPTIND - 1))"
+MODE="${1}"
+
+source "${CONFIG}" || exit 1
+
+case $MODE in 
+	"backup")
+		borg_backup
+		;;
+	"check")
+		borg_check
+		;;
+	"purge")
+		borg_prune
+		;;
+	"exec")
+		NOEMAIL='Y'
+		shift
+		borg_exec "$@"
+		;;
+	"allops")
+		borg_backup
+		borg_prune
+		borg_check
+		;;
+	*)
+		print_usage
+		exit 1
+		;;
+esac
+
+report
+
+trap - ERR INT TERM
