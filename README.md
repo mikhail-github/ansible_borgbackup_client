@@ -68,20 +68,20 @@ Shell script path:
 
 Example vars/main.yml:
 
-borg:
-  host1.local:
-    schedulle:
-      - { minute: "00", hour: "01", name: "myhost01"}
-      - { minute: "30", hour: "19", name: "myhost19"}
-    backup_dirs:
-      - "/data"
-      - "/data2"
-  host2.local:
-    schedulle:
-      - { minute: "45", hour: "*", name: "myhost21"}
-    backup_dirs:
-      - "/tmp"
-    cmd: "{{ borgwrapper }} -c /etc/borgbackup.conf backup"
+	borg:
+	  host1.local:
+	    schedulle:
+	      - { minute: "00", hour: "01", name: "myhost01"}
+	      - { minute: "30", hour: "19", name: "myhost19"}
+	    backup_dirs:
+	      - "/data"
+	      - "/data2"
+	  host2.local:
+	    schedulle:
+	      - { minute: "45", hour: "*", name: "myhost21"}
+	    backup_dirs:
+	      - "/tmp"
+	    cmd: "{{ borgwrapper }} -c /etc/borgbackup.conf backup"
 
 ## Example playbook
 
