@@ -9,7 +9,7 @@
             ssh_user: "root"
 
 
-- hosts: secondbackup.rascom.ru
+- hosts: backupserver
   become: yes
   gather_facts: yes
   roles:
@@ -25,19 +25,15 @@
   gather_facts: yes
 
   roles:
-          #- role: add_epel
-
-          #- setup_basic_mta
-
           - role: setup_borg_client
             backup_client_user: "root"
-            backup_server: "secondbackup.rascom.ru"
+            backup_server: "backupserver.dom.local"
             backup_server_user: "borg"
             backup_repos_path: "/borg/repos"
             #backup_repository: "general_repo"          # define if you want one repo for hosts
-            backup_emailto: "mshubin@rascom.ru"         # notify recipient
-            backup_emailfrom: "noreply@rascom.ru"       # from address
+            backup_emailto: "ops@dom.local"             # notify recipient
+            backup_emailfrom: "noreply@dom.local"       # from address
             remove_crontab_jobs: false                  # remove all borg jobs before adding new
-            backup_server_key: "secondbackup.rascom.ru ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvx26cRFnp51Za1yMOnGPFJ5R7eO1t5ibe77wRMYYkdXXNsKdprkTIOX3GIw5dRLVfhxWHvAbG6/ve1WV/HTrcgwA1fQgiIQHqrurOqImIhUuMxQrk/SdyZM1XYHOp1KmjZVaiXH/NdXGuuSo0XJZMfnWMcQCjypT+a7Bd4RGN2eB2wtp/LcF0/MGLy07juzwQx9f+gVuk6Pm+L7J3R1zx0Y7ieqEpQXkrgDnkVdItISW7uUtMnXQsAqQRFSLloNT58TYlkErjMI2if13+G/saTcUnkoxrnujLxqoqCfL2qC46O7mMnplB0MDzkPWcsXYy9EHEFaYHN8Cv1nYjDpkH"
+            backup_server_key: ""                       # can be found by ssh-keyscan -t rsa backupserver
 
 
