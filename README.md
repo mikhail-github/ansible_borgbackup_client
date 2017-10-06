@@ -62,7 +62,11 @@ Shell script path:
 
 	borgwrapper: "/usr/sbin/borgwrapper"
 
+<<<<<<< HEAD
+## You can define hosts specific variables in
+=======
 ##You can define hosts specific variables in
+>>>>>>> 1166962edbb5a4ed1c8c9ba087d91099abb6bb9f
 
 	borg[host_fqdn]
 
