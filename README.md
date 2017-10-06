@@ -47,11 +47,12 @@ Your backup server public key, can be found by command ssh-keyscan -t rsa backup
 
 Default list of directories for all hosts:
 
-	borg_default_backup_dirs
+	borg_default_backup_dirs:
+          - "/etc"
 
 Default values for backup schedulle:
 
-	borg_schedulle_defaults
+	borg_schedulle_defaults: { minute: "00", hour: "00", wday: "*", day: "*", month: "*" }
 
 Default job command line:
 
@@ -59,13 +60,13 @@ Default job command line:
 
 Shell script path:
 
-	borgwrapper
+	borgwrapper: "/usr/sbin/borgwrapper"
 
-You can define hosts specific variables in
+##You can define hosts specific variables in
 
 	borg[host_fqdn]
 
-##Example vars/main.yml:
+Example vars/main.yml:
 
 borg:
   host1.local:
