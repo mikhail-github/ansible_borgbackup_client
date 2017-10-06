@@ -1,6 +1,6 @@
 # Ansible role: Backup your hosts with [Borg Backup](http://borgbackup.readthedocs.io/en/stable/index.html).
 
-An ansible role that install Borg Backup on RHEL/CentOS 7
+An ansible role that installs Borg Backup on RHEL/CentOS 7
 
 ## Requirements
 
@@ -10,11 +10,11 @@ Backup server should have installed [Borg Backup](http://borgbackup.readthedocs.
 
 ## Role variables
 
-User for run backup crontab jobs
+User for run backup crontab jobs:
 
 	backup_client_user: "root"
 
-Backup server FQDN or ip
+Backup server FQDN or ip:
 
 	backup_server: "backupserver.local"
 
@@ -22,11 +22,11 @@ User on backup server, should have write permissions to a repository directory.
 
 	backup_server_user: "borg"
 
-Path for create a repository for a host
+Path for create a repository for a host:
 
 	backup_repos_path
 
-Or define one repository for all hosts
+Or define one repository for all hosts:
 	
 	#backup_repository: "general_repo"
 
@@ -35,15 +35,15 @@ Email notification settings:
 	backup_emailto: "ops@dom.local"
 	backup_emailfrom: "noreply@dom.local"
 
-If you want to remove all crontab jobs with word borg before adding new ones
+If you want to remove all crontab jobs with word borg before adding a new ones - set this to true
 
 	remove_crontab_jobs: false
 
-Your backup server public key, can be found by ssh-keyscan -t rsa backupserver:
+Your backup server public key, can be found by command ssh-keyscan -t rsa backupserver:
 
 	backup_server_key: ""
 
-You can find some defaults in role/defaults/main.yml
+## You can find some other defaults in role/defaults/main.yml
 
 Default list of directories for all hosts:
 
@@ -57,14 +57,13 @@ Default job command line:
 
 	borg_default_cmd: "{{ borgwrapper }} -c /etc/borgbackup.conf allops >> /var/log/borgbackup.log 2>&1"
 
-Shell script:
+Shell script path:
 
 	borgwrapper
 
 You can define hosts specific variables in
 
 	borg[host_fqdn]
-
 
 ##Example vars/main.yml:
 
@@ -77,9 +76,11 @@ borg:
       - "/data"
       - "/data2"
   host2.local:
+    schedulle:
+      - { minute: "45", hour: "*", name: "myhost21"}
     backup_dirs:
       - "/tmp"
-
+    cmd: "{{ borgwrapper }} -c /etc/borgbackup.conf backup"
 
 ##Example playbook
 
